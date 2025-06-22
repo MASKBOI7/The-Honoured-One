@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Honoured One Terminal</title>
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: radial-gradient(circle at center, #3700b3 0%, #1f0036 50%, #000000 100%);
       color: #c084fc;
-      overflow: hidden;
-      transition: background 0.3s ease;
+      height: 100%;
+      overflow-y: auto;
+      scroll-behavior: smooth;
     }
     .sidebar {
       width: 250px;
@@ -22,6 +24,7 @@
       position: fixed;
       right: 0;
       top: 0;
+      border-radius: 20px 0 0 20px;
     }
     .sidebar h3, .sidebar h2 {
       color: #c084fc;
@@ -48,6 +51,7 @@
       padding: 15px;
       border: 1px solid #c084fc;
       background: rgba(192, 132, 252, 0.05);
+      border-radius: 20px;
     }
     .progress-bar {
       background: #3a0066;
@@ -55,17 +59,20 @@
       height: 20px;
       margin-top: 5px;
       position: relative;
+      border-radius: 10px;
     }
     .progress-fill {
       background: #c084fc;
       height: 100%;
       width: 0%;
+      border-radius: 10px;
     }
     input, select, button {
       margin-top: 10px;
-      padding: 5px 10px;
+      padding: 10px;
       font-size: 14px;
       border: none;
+      border-radius: 10px;
     }
     input, select {
       background: #1f0036;
@@ -143,135 +150,8 @@
       <li>[S+] – Shadow Learner</li>
       <li>[S++] – The Honoured One</li>
     </ul>
-
-    <h3>📊 XP Task Guide</h3>
-    <ul>
-      <li>Small Task → 10 XP</li>
-      <li>Medium Task → 25 XP</li>
-      <li>Hard Task → 50 XP</li>
-      <li>Boss Task → 100 XP</li>
-    </ul>
   </div>
 
   <canvas class="confetti" id="confetti"></canvas>
-
-  <script>
-    let xp = parseInt(localStorage.getItem('xp')) || 2475;
-    const xpCap = 2900;
-    let dailyXP = parseInt(localStorage.getItem('dailyXP')) || 625;
-    let bonusXPActive = localStorage.getItem('bonusXPActive') === 'true';
-    const taskList = document.getElementById('taskList');
-
-    function updateXP() {
-      document.getElementById('xp').innerText = `${xp} / ${xpCap}`;
-      document.getElementById('xp-fill').style.width = `${(xp / xpCap) * 100}%`;
-
-      if (dailyXP >= 500) {
-        const btn = document.getElementById('fullRecoveryBtn');
-        btn.disabled = false;
-        btn.classList.remove('button-disabled');
-      }
-
-      if (xp >= xpCap) {
-        fireConfetti();
-        xp = 0;
-      }
-
-      localStorage.setItem('xp', xp);
-      localStorage.setItem('dailyXP', dailyXP);
-      localStorage.setItem('bonusXPActive', bonusXPActive);
-    }
-
-    function addTask() {
-      const name = document.getElementById('taskName').value;
-      let value = parseInt(document.getElementById('taskXP').value);
-
-      if (!name || isNaN(value)) return;
-
-      if (bonusXPActive) {
-        value = Math.floor(value * 1.25);
-        bonusXPActive = false;
-        document.getElementById('bonusXPBtn').innerText = 'Activate Awakened Aura';
-      }
-
-      xp += value;
-      dailyXP += value;
-
-      const li = document.createElement('li');
-      li.textContent = `✔ ${name} [+${value} XP]`;
-      taskList.appendChild(li);
-
-      updateXP();
-    }
-
-    function useFullRecovery() {
-      if (dailyXP >= 500) {
-        xp += 100;
-        updateXP();
-        const btn = document.getElementById('fullRecoveryBtn');
-        btn.disabled = true;
-        btn.classList.add('button-disabled');
-      }
-    }
-
-    function activateBonusXP() {
-      bonusXPActive = true;
-      document.getElementById('bonusXPBtn').innerText = '🟣 Activated!';
-      updateXP();
-    }
-
-    function fireConfetti() {
-      const confetti = document.getElementById("confetti");
-      const ctx = confetti.getContext("2d");
-      const pieces = 200;
-      const particles = [];
-
-      confetti.width = window.innerWidth;
-      confetti.height = window.innerHeight;
-
-      for (let i = 0; i < pieces; i++) {
-        particles.push({
-          x: Math.random() * confetti.width,
-          y: Math.random() * confetti.height - confetti.height,
-          r: Math.random() * 6 + 4,
-          d: Math.random() * pieces,
-          color: `hsl(${Math.random() * 360}, 100%, 70%)`,
-          tilt: Math.floor(Math.random() * 10) - 10
-        });
-      }
-
-      function draw() {
-        ctx.clearRect(0, 0, confetti.width, confetti.height);
-        particles.forEach(p => {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, false);
-          ctx.fillStyle = p.color;
-          ctx.fill();
-        });
-        update();
-      }
-
-      function update() {
-        particles.forEach(p => {
-          p.y += Math.cos(p.d) + 1 + p.r / 2;
-          p.x += Math.sin(p.d);
-        });
-      }
-
-      function animate() {
-        draw();
-        requestAnimationFrame(animate);
-      }
-
-      animate();
-      setTimeout(() => ctx.clearRect(0, 0, confetti.width, confetti.height), 3000);
-    }
-
-    document.addEventListener('mousemove', e => {
-      document.body.style.background = `radial-gradient(circle at ${e.clientX}px ${e.clientY}px, #3700b3 0%, #1f0036 50%, #000 100%)`;
-    });
-
-    updateXP();
-  </script>
 </body>
 </html>
