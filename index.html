@@ -15,6 +15,18 @@
       overflow-y: auto;
       scroll-behavior: smooth;
     }
+    .reset-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #c084fc;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 15px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 2000;
+    }
     .sidebar {
       width: 250px;
       background: rgba(25, 0, 51, 0.9);
@@ -119,11 +131,11 @@
   </style>
 </head>
 <body>
+  <button class="reset-btn" onclick="confirmReset()">Reset Progress</button>
+
   <div class="main">
     <h1>🧾 HONOURED ONE TERMINAL</h1>
-
     <div class="clock" id="clock"></div>
-
     <div class="stat-block">
       <h2>📊 Player Stats</h2>
       <p><strong>Level:</strong> <span id="level">1</span></p>
@@ -175,7 +187,6 @@
   <canvas class="confetti" id="confetti"></canvas>
 
   <script>
-    // Track state in localStorage
     let xp = parseInt(localStorage.getItem('xp')) || 0;
     let level = parseInt(localStorage.getItem('level')) || 1;
     const xpPerLevel = 100;
@@ -187,6 +198,16 @@
       updateRank(level);
     }
 
+    function confirmReset() {
+      if (confirm("Are you sure you want to reset all progress?")) {
+        localStorage.removeItem('xp');
+        localStorage.removeItem('level');
+        xp = 0;
+        level = 1;
+        updateStatsDisplay();
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       updateStatsDisplay();
     });
@@ -196,8 +217,7 @@
       document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
     });
 
-    const addTaskBtn = document.getElementById('addTaskBtn');
-    addTaskBtn.addEventListener('click', () => {
+    document.getElementById('addTaskBtn').addEventListener('click', () => {
       const taskName = document.getElementById('taskName').value;
       const taskXP = parseInt(document.getElementById('taskXP').value);
       if (taskName) {
