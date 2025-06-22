@@ -9,7 +9,7 @@
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: radial-gradient(circle at center, #3700b3 0%, #1f0036 50%, #000000 100%);
+      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), #3700b3, #1f0036, #000);
       color: #c084fc;
       height: 100%;
       overflow-y: auto;
@@ -36,6 +36,17 @@
     .sidebar li {
       margin-bottom: 10px;
       font-size: 14px;
+    }
+    .sidebar button {
+      margin-top: 20px;
+      width: 100%;
+      background: #c084fc;
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 10px;
     }
     .main {
       margin-right: 250px;
@@ -99,17 +110,25 @@
       pointer-events: none;
       z-index: 1000;
     }
+    .clock {
+      font-size: 24px;
+      text-align: center;
+      margin-top: 10px;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
   <div class="main">
     <h1>🧾 HONOURED ONE TERMINAL</h1>
 
+    <div class="clock" id="clock"></div>
+
     <div class="stat-block">
       <h2>📊 Player Stats</h2>
-      <p><strong>Level:</strong> <span id="level">16 – Flow Master</span></p>
-      <p><strong>XP:</strong> <span id="xp">2475 / 2900</span></p>
-      <p><strong>Rank:</strong> <span id="rank">[S] – Precision Grinder</span></p>
+      <p><strong>Level:</strong> <span id="level">1</span></p>
+      <p><strong>XP:</strong> <span id="xp">0 / 100</span></p>
+      <p><strong>Rank:</strong> <span id="rank">[E] – Novice</span></p>
       <div class="progress-bar">
         <div class="progress-fill" id="xp-fill"></div>
       </div>
@@ -124,17 +143,17 @@
         <option value="50">Hard Task (50 XP)</option>
         <option value="100">Boss Task (100 XP)</option>
       </select>
-      <button onclick="addTask()">Add Task</button>
+      <button id="addTaskBtn">Add Task</button>
       <ul id="taskList"></ul>
     </div>
 
     <div class="ability-section">
       <h2>💊 Abilities</h2>
       <p><strong>Full Recovery:</strong> +100 XP<br><em>Usable after 500 XP earned today. No cooldown.</em></p>
-      <button id="fullRecoveryBtn" onclick="useFullRecovery()" class="button-disabled" disabled>Use Full Recovery</button>
+      <button id="fullRecoveryBtn" class="button-disabled" disabled>Use Full Recovery</button>
       <br><br>
       <p><strong>Awakened Aura (Passive):</strong> 25% bonus XP on next task<br><em>Activate manually. One-time effect per activation.</em></p>
-      <button id="bonusXPBtn" onclick="activateBonusXP()">Activate Awakened Aura</button>
+      <button id="bonusXPBtn">Activate Awakened Aura</button>
     </div>
   </div>
 
@@ -150,8 +169,77 @@
       <li>[S+] – Shadow Learner</li>
       <li>[S++] – The Honoured One</li>
     </ul>
+    <button onclick="scrollToAbilities()">🌀 Abilities</button>
   </div>
 
   <canvas class="confetti" id="confetti"></canvas>
+
+  <script>
+    document.addEventListener('mousemove', e => {
+      document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
+      document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
+    });
+
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    addTaskBtn.addEventListener('click', () => {
+      const taskName = document.getElementById('taskName').value;
+      const taskXP = parseInt(document.getElementById('taskXP').value);
+      if (taskName) {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${taskName} - ${taskXP} XP`;
+        document.getElementById('taskList').appendChild(listItem);
+        addXP(taskXP);
+        document.getElementById('taskName').value = '';
+      }
+    });
+
+    let xp = 0, level = 1;
+    const xpPerLevel = 100;
+    function addXP(amount) {
+      xp += amount;
+      if (xp >= level * xpPerLevel) {
+        xp = xp - level * xpPerLevel;
+        level++;
+        document.getElementById('xp').textContent = `${xp} / ${level * xpPerLevel}`;
+        document.getElementById('level').textContent = level;
+        updateRank(level);
+        showConfetti();
+      } else {
+        document.getElementById('xp').textContent = `${xp} / ${level * xpPerLevel}`;
+      }
+      document.getElementById('xp-fill').style.width = `${(xp / (level * xpPerLevel)) * 100}%`;
+    }
+
+    function updateRank(level) {
+      const rankEl = document.getElementById('rank');
+      if (level >= 30) rankEl.textContent = '[S++] – The Honoured One';
+      else if (level >= 25) rankEl.textContent = '[S+] – Shadow Learner';
+      else if (level >= 20) rankEl.textContent = '[S] – Precision Grinder';
+      else if (level >= 15) rankEl.textContent = '[A] – Efficient Grinder';
+      else if (level >= 10) rankEl.textContent = '[B] – Consistent Striker';
+      else if (level >= 5) rankEl.textContent = '[C] – Sharp Focus';
+      else if (level >= 3) rankEl.textContent = '[D] – Steady Starter';
+      else rankEl.textContent = '[E] – Novice';
+    }
+
+    function scrollToAbilities() {
+      document.querySelector('.ability-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showConfetti() {
+      // Placeholder for future confetti logic
+      alert("🎉 Level Up! 🎉");
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const hours = now.getHours() % 12 || 12;
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+      document.getElementById('clock').textContent = `${hours}:${minutes} ${ampm}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
 </body>
 </html>
