@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Honoured One Terminal</title>
+  <style>
+    body {
+      background-color: #0a0a0a;
+      color: #00ffcc;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #66ffcc;
+      border-bottom: 2px solid #00ffcc;
+      padding-bottom: 10px;
+    }
+    .stat-block, .task-log, .ability-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #00ffcc;
+      background: rgba(0, 255, 204, 0.05);
+    }
+    .progress-bar {
+      background: #004d40;
+      border: 1px solid #00ffcc;
+      height: 20px;
+      margin-top: 5px;
+      position: relative;
+    }
+    .progress-fill {
+      background: #00ffcc;
+      height: 100%;
+      width: 0%;
+    }
+    button {
+      background: #00ffcc;
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .button-disabled {
+      background: #444;
+      color: #888;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧾 HONOURED ONE TERMINAL</h1>
+
+  <div class="stat-block">
+    <h2>📊 Player Stats</h2>
+    <p><strong>Level:</strong> <span id="level">16 – Flow Master</span></p>
+    <p><strong>XP:</strong> <span id="xp">2475 / 2900</span></p>
+    <p><strong>Rank:</strong> [S] – Precision Grinder</p>
+    <div class="progress-bar">
+      <div class="progress-fill" id="xp-fill"></div>
+    </div>
+  </div>
+
+  <div class="task-log">
+    <h2>📚 Daily Task Log</h2>
+    <input type="text" id="taskName" placeholder="Task name" />
+    <input type="number" id="taskXP" placeholder="XP" />
+    <button onclick="addTask()">Add Task</button>
+    <ul id="taskList"></ul>
+  </div>
+
+  <div class="ability-section">
+    <h2>💊 Abilities</h2>
+    <p><strong>Full Recovery:</strong> +100 XP<br><em>Usable after 500 XP earned today. No cooldown.</em></p>
+    <button id="fullRecoveryBtn" onclick="useFullRecovery()" class="button-disabled" disabled>Use Full Recovery</button>
+  </div>
+
+  <script>
+    let xp = 2475;
+    const xpCap = 2900;
+    let dailyXP = 625;
+    const taskList = document.getElementById('taskList');
+
+    function updateXP() {
+      document.getElementById('xp').innerText = `${xp} / ${xpCap}`;
+      const fill = document.getElementById('xp-fill');
+      fill.style.width = `${(xp / xpCap) * 100}%`;
+
+      const btn = document.getElementById('fullRecoveryBtn');
+      if (dailyXP >= 500) {
+        btn.disabled = false;
+        btn.classList.remove('button-disabled');
+      }
+    }
+
+    function addTask() {
+      const name = document.getElementById('taskName').value;
+      const value = parseInt(document.getElementById('taskXP').value);
+      if (!name || isNaN(value)) return;
+
+      xp += value;
+      dailyXP += value;
+
+      const li = document.createElement('li');
+      li.textContent = `✔ ${name} [+${value} XP]`;
+      taskList.appendChild(li);
+
+      updateXP();
+    }
+
+    function useFullRecovery() {
+      if (dailyXP >= 500) {
+        xp += 100;
+        alert("💊 Full Recovery used! +100 XP");
+        updateXP();
+
+        const btn = document.getElementById('fullRecoveryBtn');
+        btn.disabled = true;
+        btn.classList.add('button-disabled');
+      }
+    }
+
+    updateXP();
+  </script>
+</body>
+</html>
