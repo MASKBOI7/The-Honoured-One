@@ -6,42 +6,74 @@
   <title>Honoured One Terminal</title>
   <style>
     body {
-      background-color: #0a0a0a;
-      color: #00ffcc;
-      font-family: 'Courier New', Courier, monospace;
+      background-color: #0d0d0d;
+      color: #00ffee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      display: flex;
+    }
+    .sidebar {
+      width: 250px;
+      background: #111;
+      padding: 20px;
+      border-right: 2px solid #00ffee;
+      height: 100vh;
+    }
+    .sidebar h3 {
+      color: #00ffee;
+      margin-bottom: 10px;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .sidebar li {
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .main {
+      flex: 1;
       padding: 20px;
     }
     h1 {
-      color: #66ffcc;
-      border-bottom: 2px solid #00ffcc;
+      color: #00ffee;
+      border-bottom: 2px solid #00ffee;
       padding-bottom: 10px;
     }
     .stat-block, .task-log, .ability-section {
       margin: 20px 0;
       padding: 15px;
-      border: 1px solid #00ffcc;
-      background: rgba(0, 255, 204, 0.05);
+      border: 1px solid #00ffee;
+      background: rgba(0, 255, 238, 0.05);
     }
     .progress-bar {
-      background: #004d40;
-      border: 1px solid #00ffcc;
+      background: #003333;
+      border: 1px solid #00ffee;
       height: 20px;
       margin-top: 5px;
       position: relative;
     }
     .progress-fill {
-      background: #00ffcc;
+      background: #00ffee;
       height: 100%;
       width: 0%;
     }
-    button {
-      background: #00ffcc;
-      color: #000;
-      border: none;
-      padding: 8px 16px;
-      cursor: pointer;
-      font-weight: bold;
+    input, button {
       margin-top: 10px;
+      padding: 5px 10px;
+      font-size: 14px;
+      border: none;
+    }
+    input {
+      background: #222;
+      color: #00ffee;
+      border: 1px solid #00ffee;
+    }
+    button {
+      background: #00ffee;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
     }
     .button-disabled {
       background: #444;
@@ -51,36 +83,48 @@
   </style>
 </head>
 <body>
-  <h1>🧾 HONOURED ONE TERMINAL</h1>
+  <div class="sidebar">
+    <h3>📊 XP Task Guide</h3>
+    <ul>
+      <li>Small Task → 10 XP</li>
+      <li>Medium Task → 25 XP</li>
+      <li>Hard Task → 50 XP</li>
+      <li>Max per Task → 100 XP</li>
+      <li>Min per Task → 10 XP</li>
+    </ul>
+  </div>
+  <div class="main">
+    <h1>🧾 HONOURED ONE TERMINAL</h1>
 
-  <div class="stat-block">
-    <h2>📊 Player Stats</h2>
-    <p><strong>Level:</strong> <span id="level">16 – Flow Master</span></p>
-    <p><strong>XP:</strong> <span id="xp">2475 / 2900</span></p>
-    <p><strong>Rank:</strong> [S] – Precision Grinder</p>
-    <div class="progress-bar">
-      <div class="progress-fill" id="xp-fill"></div>
+    <div class="stat-block">
+      <h2>📊 Player Stats</h2>
+      <p><strong>Level:</strong> <span id="level">16 – Flow Master</span></p>
+      <p><strong>XP:</strong> <span id="xp">2475 / 2900</span></p>
+      <p><strong>Rank:</strong> [S] – Precision Grinder</p>
+      <div class="progress-bar">
+        <div class="progress-fill" id="xp-fill"></div>
+      </div>
+    </div>
+
+    <div class="task-log">
+      <h2>📚 Daily Task Log</h2>
+      <input type="text" id="taskName" placeholder="Task name" />
+      <input type="number" id="taskXP" placeholder="XP (10-100)" />
+      <button onclick="addTask()">Add Task</button>
+      <ul id="taskList"></ul>
+    </div>
+
+    <div class="ability-section">
+      <h2>💊 Abilities</h2>
+      <p><strong>Full Recovery:</strong> +100 XP<br><em>Usable after 500 XP earned today. No cooldown.</em></p>
+      <button id="fullRecoveryBtn" onclick="useFullRecovery()" class="button-disabled" disabled>Use Full Recovery</button>
     </div>
   </div>
 
-  <div class="task-log">
-    <h2>📚 Daily Task Log</h2>
-    <input type="text" id="taskName" placeholder="Task name" />
-    <input type="number" id="taskXP" placeholder="XP" />
-    <button onclick="addTask()">Add Task</button>
-    <ul id="taskList"></ul>
-  </div>
-
-  <div class="ability-section">
-    <h2>💊 Abilities</h2>
-    <p><strong>Full Recovery:</strong> +100 XP<br><em>Usable after 500 XP earned today. No cooldown.</em></p>
-    <button id="fullRecoveryBtn" onclick="useFullRecovery()" class="button-disabled" disabled>Use Full Recovery</button>
-  </div>
-
   <script>
-    let xp = 2475;
+    let xp = parseInt(localStorage.getItem('xp')) || 2475;
     const xpCap = 2900;
-    let dailyXP = 625;
+    let dailyXP = parseInt(localStorage.getItem('dailyXP')) || 625;
     const taskList = document.getElementById('taskList');
 
     function updateXP() {
@@ -93,12 +137,19 @@
         btn.disabled = false;
         btn.classList.remove('button-disabled');
       }
+
+      localStorage.setItem('xp', xp);
+      localStorage.setItem('dailyXP', dailyXP);
     }
 
     function addTask() {
       const name = document.getElementById('taskName').value;
-      const value = parseInt(document.getElementById('taskXP').value);
-      if (!name || isNaN(value)) return;
+      let value = parseInt(document.getElementById('taskXP').value);
+
+      if (!name || isNaN(value) || value < 10 || value > 100) {
+        alert("XP must be between 10 and 100.");
+        return;
+      }
 
       xp += value;
       dailyXP += value;
