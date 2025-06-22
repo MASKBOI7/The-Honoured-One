@@ -175,6 +175,22 @@
   <canvas class="confetti" id="confetti"></canvas>
 
   <script>
+    // Track state in localStorage
+    let xp = parseInt(localStorage.getItem('xp')) || 0;
+    let level = parseInt(localStorage.getItem('level')) || 1;
+    const xpPerLevel = 100;
+
+    function updateStatsDisplay() {
+      document.getElementById('xp').textContent = `${xp} / ${level * xpPerLevel}`;
+      document.getElementById('level').textContent = level;
+      document.getElementById('xp-fill').style.width = `${(xp / (level * xpPerLevel)) * 100}%`;
+      updateRank(level);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateStatsDisplay();
+    });
+
     document.addEventListener('mousemove', e => {
       document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
       document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
@@ -193,21 +209,18 @@
       }
     });
 
-    let xp = 0, level = 1;
-    const xpPerLevel = 100;
     function addXP(amount) {
       xp += amount;
-      if (xp >= level * xpPerLevel) {
-        xp = xp - level * xpPerLevel;
+      let leveledUp = false;
+      while (xp >= level * xpPerLevel) {
+        xp -= level * xpPerLevel;
         level++;
-        document.getElementById('xp').textContent = `${xp} / ${level * xpPerLevel}`;
-        document.getElementById('level').textContent = level;
-        updateRank(level);
-        showConfetti();
-      } else {
-        document.getElementById('xp').textContent = `${xp} / ${level * xpPerLevel}`;
+        leveledUp = true;
       }
-      document.getElementById('xp-fill').style.width = `${(xp / (level * xpPerLevel)) * 100}%`;
+      localStorage.setItem('xp', xp);
+      localStorage.setItem('level', level);
+      updateStatsDisplay();
+      if (leveledUp) showConfetti();
     }
 
     function updateRank(level) {
@@ -227,8 +240,14 @@
     }
 
     function showConfetti() {
-      // Placeholder for future confetti logic
-      alert("🎉 Level Up! 🎉");
+      const duration = 2 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+      const interval = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
+        confetti(Object.assign({}, defaults, { particleCount: 50, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+      }, 250);
     }
 
     function updateClock() {
@@ -241,5 +260,6 @@
     setInterval(updateClock, 1000);
     updateClock();
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
 </body>
 </html>
