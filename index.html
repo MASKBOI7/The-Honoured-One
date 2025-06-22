@@ -8,9 +8,10 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom right, #1f0036, #000000);
+      background: radial-gradient(circle at center, #3700b3 0%, #1f0036 50%, #000000 100%);
       color: #c084fc;
       overflow: hidden;
+      transition: background 0.3s ease;
     }
     .sidebar {
       width: 250px;
@@ -101,7 +102,7 @@
       <h2>📊 Player Stats</h2>
       <p><strong>Level:</strong> <span id="level">16 – Flow Master</span></p>
       <p><strong>XP:</strong> <span id="xp">2475 / 2900</span></p>
-      <p><strong>Rank:</strong> [S] – Precision Grinder</p>
+      <p><strong>Rank:</strong> <span id="rank">[S] – Precision Grinder</span></p>
       <div class="progress-bar">
         <div class="progress-fill" id="xp-fill"></div>
       </div>
@@ -124,6 +125,9 @@
       <h2>💊 Abilities</h2>
       <p><strong>Full Recovery:</strong> +100 XP<br><em>Usable after 500 XP earned today. No cooldown.</em></p>
       <button id="fullRecoveryBtn" onclick="useFullRecovery()" class="button-disabled" disabled>Use Full Recovery</button>
+      <br><br>
+      <p><strong>Awakened Aura (Passive):</strong> 25% bonus XP on next task<br><em>Activate manually. One-time effect per activation.</em></p>
+      <button id="bonusXPBtn" onclick="activateBonusXP()">Activate Awakened Aura</button>
     </div>
   </div>
 
@@ -155,6 +159,7 @@
     let xp = parseInt(localStorage.getItem('xp')) || 2475;
     const xpCap = 2900;
     let dailyXP = parseInt(localStorage.getItem('dailyXP')) || 625;
+    let bonusXPActive = localStorage.getItem('bonusXPActive') === 'true';
     const taskList = document.getElementById('taskList');
 
     function updateXP() {
@@ -174,6 +179,7 @@
 
       localStorage.setItem('xp', xp);
       localStorage.setItem('dailyXP', dailyXP);
+      localStorage.setItem('bonusXPActive', bonusXPActive);
     }
 
     function addTask() {
@@ -181,6 +187,12 @@
       let value = parseInt(document.getElementById('taskXP').value);
 
       if (!name || isNaN(value)) return;
+
+      if (bonusXPActive) {
+        value = Math.floor(value * 1.25);
+        bonusXPActive = false;
+        document.getElementById('bonusXPBtn').innerText = 'Activate Awakened Aura';
+      }
 
       xp += value;
       dailyXP += value;
@@ -200,6 +212,12 @@
         btn.disabled = true;
         btn.classList.add('button-disabled');
       }
+    }
+
+    function activateBonusXP() {
+      bonusXPActive = true;
+      document.getElementById('bonusXPBtn').innerText = '🟣 Activated!';
+      updateXP();
     }
 
     function fireConfetti() {
