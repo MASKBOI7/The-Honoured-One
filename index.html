@@ -6,22 +6,24 @@
   <title>Honoured One Terminal</title>
   <style>
     body {
-      background-color: #0d0d0d;
-      color: #00ffee;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      display: flex;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #1f0036, #000000);
+      color: #c084fc;
+      overflow: hidden;
     }
     .sidebar {
       width: 250px;
-      background: #111;
+      background: rgba(25, 0, 51, 0.9);
       padding: 20px;
-      border-right: 2px solid #00ffee;
+      border-right: 2px solid #c084fc;
       height: 100vh;
+      position: fixed;
+      right: 0;
+      top: 0;
     }
-    .sidebar h3 {
-      color: #00ffee;
-      margin-bottom: 10px;
+    .sidebar h3, .sidebar h2 {
+      color: #c084fc;
     }
     .sidebar ul {
       list-style: none;
@@ -32,45 +34,45 @@
       font-size: 14px;
     }
     .main {
-      flex: 1;
-      padding: 20px;
+      margin-right: 250px;
+      padding: 30px;
     }
     h1 {
-      color: #00ffee;
-      border-bottom: 2px solid #00ffee;
+      color: #c084fc;
+      border-bottom: 2px solid #c084fc;
       padding-bottom: 10px;
     }
     .stat-block, .task-log, .ability-section {
       margin: 20px 0;
       padding: 15px;
-      border: 1px solid #00ffee;
-      background: rgba(0, 255, 238, 0.05);
+      border: 1px solid #c084fc;
+      background: rgba(192, 132, 252, 0.05);
     }
     .progress-bar {
-      background: #003333;
-      border: 1px solid #00ffee;
+      background: #3a0066;
+      border: 1px solid #c084fc;
       height: 20px;
       margin-top: 5px;
       position: relative;
     }
     .progress-fill {
-      background: #00ffee;
+      background: #c084fc;
       height: 100%;
       width: 0%;
     }
-    input, button {
+    input, select, button {
       margin-top: 10px;
       padding: 5px 10px;
       font-size: 14px;
       border: none;
     }
-    input {
-      background: #222;
-      color: #00ffee;
-      border: 1px solid #00ffee;
+    input, select {
+      background: #1f0036;
+      color: #c084fc;
+      border: 1px solid #c084fc;
     }
     button {
-      background: #00ffee;
+      background: #c084fc;
       color: #000;
       font-weight: bold;
       cursor: pointer;
@@ -80,19 +82,18 @@
       color: #888;
       cursor: not-allowed;
     }
+    .confetti {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h3>📊 XP Task Guide</h3>
-    <ul>
-      <li>Small Task → 10 XP</li>
-      <li>Medium Task → 25 XP</li>
-      <li>Hard Task → 50 XP</li>
-      <li>Max per Task → 100 XP</li>
-      <li>Min per Task → 10 XP</li>
-    </ul>
-  </div>
   <div class="main">
     <h1>🧾 HONOURED ONE TERMINAL</h1>
 
@@ -109,7 +110,12 @@
     <div class="task-log">
       <h2>📚 Daily Task Log</h2>
       <input type="text" id="taskName" placeholder="Task name" />
-      <input type="number" id="taskXP" placeholder="XP (10-100)" />
+      <select id="taskXP">
+        <option value="10">Small Task (10 XP)</option>
+        <option value="25">Medium Task (25 XP)</option>
+        <option value="50">Hard Task (50 XP)</option>
+        <option value="100">Boss Task (100 XP)</option>
+      </select>
       <button onclick="addTask()">Add Task</button>
       <ul id="taskList"></ul>
     </div>
@@ -121,6 +127,30 @@
     </div>
   </div>
 
+  <div class="sidebar">
+    <h2>🎖 Rank System</h2>
+    <ul>
+      <li>[E] – Novice</li>
+      <li>[D] – Steady Starter</li>
+      <li>[C] – Sharp Focus</li>
+      <li>[B] – Consistent Striker</li>
+      <li>[A] – Efficient Grinder</li>
+      <li>[S] – Precision Grinder</li>
+      <li>[S+] – Shadow Learner</li>
+      <li>[S++] – The Honoured One</li>
+    </ul>
+
+    <h3>📊 XP Task Guide</h3>
+    <ul>
+      <li>Small Task → 10 XP</li>
+      <li>Medium Task → 25 XP</li>
+      <li>Hard Task → 50 XP</li>
+      <li>Boss Task → 100 XP</li>
+    </ul>
+  </div>
+
+  <canvas class="confetti" id="confetti"></canvas>
+
   <script>
     let xp = parseInt(localStorage.getItem('xp')) || 2475;
     const xpCap = 2900;
@@ -129,13 +159,17 @@
 
     function updateXP() {
       document.getElementById('xp').innerText = `${xp} / ${xpCap}`;
-      const fill = document.getElementById('xp-fill');
-      fill.style.width = `${(xp / xpCap) * 100}%`;
+      document.getElementById('xp-fill').style.width = `${(xp / xpCap) * 100}%`;
 
-      const btn = document.getElementById('fullRecoveryBtn');
       if (dailyXP >= 500) {
+        const btn = document.getElementById('fullRecoveryBtn');
         btn.disabled = false;
         btn.classList.remove('button-disabled');
+      }
+
+      if (xp >= xpCap) {
+        fireConfetti();
+        xp = 0;
       }
 
       localStorage.setItem('xp', xp);
@@ -146,10 +180,7 @@
       const name = document.getElementById('taskName').value;
       let value = parseInt(document.getElementById('taskXP').value);
 
-      if (!name || isNaN(value) || value < 10 || value > 100) {
-        alert("XP must be between 10 and 100.");
-        return;
-      }
+      if (!name || isNaN(value)) return;
 
       xp += value;
       dailyXP += value;
@@ -164,14 +195,63 @@
     function useFullRecovery() {
       if (dailyXP >= 500) {
         xp += 100;
-        alert("💊 Full Recovery used! +100 XP");
         updateXP();
-
         const btn = document.getElementById('fullRecoveryBtn');
         btn.disabled = true;
         btn.classList.add('button-disabled');
       }
     }
+
+    function fireConfetti() {
+      const confetti = document.getElementById("confetti");
+      const ctx = confetti.getContext("2d");
+      const pieces = 200;
+      const particles = [];
+
+      confetti.width = window.innerWidth;
+      confetti.height = window.innerHeight;
+
+      for (let i = 0; i < pieces; i++) {
+        particles.push({
+          x: Math.random() * confetti.width,
+          y: Math.random() * confetti.height - confetti.height,
+          r: Math.random() * 6 + 4,
+          d: Math.random() * pieces,
+          color: `hsl(${Math.random() * 360}, 100%, 70%)`,
+          tilt: Math.floor(Math.random() * 10) - 10
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, confetti.width, confetti.height);
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, false);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+        });
+        update();
+      }
+
+      function update() {
+        particles.forEach(p => {
+          p.y += Math.cos(p.d) + 1 + p.r / 2;
+          p.x += Math.sin(p.d);
+        });
+      }
+
+      function animate() {
+        draw();
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+      setTimeout(() => ctx.clearRect(0, 0, confetti.width, confetti.height), 3000);
+    }
+
+    document.addEventListener('mousemove', e => {
+      document.body.style.background = `radial-gradient(circle at ${e.clientX}px ${e.clientY}px, #3700b3 0%, #1f0036 50%, #000 100%)`;
+    });
 
     updateXP();
   </script>
